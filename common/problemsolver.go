@@ -28,8 +28,9 @@ func NewProblemRunner(flags *ProblemSolverFlags, solver ProblemSolver, reader Pr
 	}
 }
 
-func RunFromSolver(solver ProblemSolver) {
+func RunFromSolver(solver ProblemSolver, dayOverride int) {
 	flags := MustParseFlags(os.Args[1:], true)
+	flags.Day = dayOverride
 	runner := NewProblemRunner(
 		flags,
 		solver,

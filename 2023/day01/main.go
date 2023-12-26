@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	common.RunFromSolver(&solver{})
+	common.RunFromSolver(&solver{}, 1)
 }
 
 type solver struct{}
