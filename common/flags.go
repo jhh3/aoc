@@ -18,8 +18,6 @@ func ParseFlags(args []string, debug bool) (*ProblemSolverFlags, error) {
 	parsedFlags := ProblemSolverFlags{}
 	fs := flag.NewFlagSet("aoc", flag.ContinueOnError)
 
-	fs.IntVar(&parsedFlags.Year, "year", 2023, "year")
-	fs.IntVar(&parsedFlags.Day, "day", 1, "day")
 	fs.IntVar(&parsedFlags.Part, "part", 1, "part 1 or 2")
 	fs.StringVar(&parsedFlags.CookieFilePath, "cookie", "cookie.txt", "path to cookie file")
 	fs.StringVar(&parsedFlags.CacheDir, "cache", "inputs", "path to cache directory")
@@ -31,8 +29,6 @@ func ParseFlags(args []string, debug bool) (*ProblemSolverFlags, error) {
 
 	if debug {
 		fmt.Println("Parsed flags:")
-		fmt.Println("\tYear:", parsedFlags.Year)
-		fmt.Println("\tDay:", parsedFlags.Day)
 		fmt.Println("\tPart:", parsedFlags.Part)
 		fmt.Println("\tCookieFilePath:", parsedFlags.CookieFilePath)
 		fmt.Println("\tCacheDir:", parsedFlags.CacheDir)
@@ -42,9 +38,11 @@ func ParseFlags(args []string, debug bool) (*ProblemSolverFlags, error) {
 	return &parsedFlags, nil
 }
 
-func MustParseFlags(args []string, debug bool) *ProblemSolverFlags {
+func MustParseFlags(args []string, year, day int, debug bool) *ProblemSolverFlags {
 	flags, err := ParseFlags(args, debug)
 	CheckErr(err, "Failed to parse flags")
+	flags.Day = day
+	flags.Year = year
 	return flags
 }
 
