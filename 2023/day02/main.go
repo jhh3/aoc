@@ -31,8 +31,17 @@ func (ps *solver) SolvePart1(input string) string {
 	return strconv.Itoa(sum)
 }
 
+// For each game, find the minimum set of cubes that must have been present.
+// What is the sum of the power of these sets?
 func (ps *solver) SolvePart2(input string) string {
-	return ""
+	games := parseInput(input)
+	sum := 0
+
+	for _, game := range games {
+		sum += game.MinPower()
+	}
+
+	return strconv.Itoa(sum)
 }
 
 // Input parser
@@ -77,6 +86,22 @@ func (g *Game) IsPossible(red, green, blue int) bool {
 		}
 	}
 	return true
+}
+
+func (g *Game) MinPower() int {
+	var maxBlue, maxRed, maxGreen int
+	for _, round := range g.rounds {
+		if round.blue > maxBlue {
+			maxBlue = round.blue
+		}
+		if round.red > maxRed {
+			maxRed = round.red
+		}
+		if round.green > maxGreen {
+			maxGreen = round.green
+		}
+	}
+	return maxBlue * maxRed * maxGreen
 }
 
 func parseInput(input string) []Game {
