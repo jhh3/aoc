@@ -8,7 +8,9 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
+	"unicode"
 )
 
 const _baseUrl = "https://adventofcode.com"
@@ -29,8 +31,11 @@ func main() {
 	fmt.Printf("Running part %d of day %d of year %d\n", part, day, year)
 
 	fmt.Println("Solving problem")
+
 	ps := NewProblemSolver(cookieFilePath, _baseUrl, cacheDir, year, day, part)
-	ps.Solve()
+	result := ps.Solve()
+
+	fmt.Println("Result:", result)
 }
 
 type IPuzzleSolver interface {
@@ -65,14 +70,43 @@ func (ps *ProblemSolver) Solve() string {
 }
 
 func (ps *ProblemSolver) SolvePart1() string {
-	fmt.Println("Pulling down the input file")
-
+	fmt.Println("\tPulling down the input file")
 	input, err := ps.GetInput()
 	check(err, "Failed to get input")
 
-	fmt.Println(input)
+	fmt.Println("\tSolving problem")
+	lines := strings.Split(string(input), "\n")
+	sum := 0
 
-	return fmt.Sprintf("Solving problem")
+	for _, line := range lines {
+		cleanLine := strings.TrimSpace(line)
+		if cleanLine == "" {
+			continue
+		}
+
+		// iterate over each character in the line
+		var firstDigit rune
+		var lastDigit rune
+		for _, r := range cleanLine {
+			// check if the current character is a digit
+			if unicode.IsDigit(r) {
+				if firstDigit == 0 {
+					firstDigit = r
+					lastDigit = firstDigit
+				} else {
+					lastDigit = r
+				}
+			}
+		}
+
+		// convert to two digit integer
+		val, err := strconv.Atoi(string(firstDigit) + string(lastDigit))
+		check(err, "Failed to convert to integer")
+
+		sum += val
+	}
+
+	return strconv.Itoa(sum)
 }
 
 func (ps *ProblemSolver) SolvePart2() string {
@@ -82,7 +116,7 @@ func (ps *ProblemSolver) SolvePart2() string {
 func (ps *ProblemSolver) GetInput() (string, error) {
 	// Check if cached data exists.
 	if data, err := os.ReadFile(ps.cacheKey); err == nil {
-		fmt.Println("Using cached input")
+		fmt.Println("\tUsing cached input")
 		return string(data), nil
 	}
 
