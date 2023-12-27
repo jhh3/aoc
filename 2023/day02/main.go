@@ -135,7 +135,7 @@ func parseGame(input string) Game {
 	}
 
 	return Game{
-		id:     MustAtoi(gameId),
+		id:     common.MustAtoi(gameId),
 		rounds: rounds,
 	}
 }
@@ -147,7 +147,7 @@ func parseRound(input string) Round {
 	for _, blockInfo := range blockInfos {
 		cleanBlockInfo := strings.TrimSpace(blockInfo)
 		pieces := strings.Split(cleanBlockInfo, " ")
-		quantity := MustAtoi(pieces[0])
+		quantity := common.MustAtoi(pieces[0])
 		color := pieces[1]
 		switch color {
 		case "blue":
@@ -162,10 +162,4 @@ func parseRound(input string) Round {
 	}
 
 	return r
-}
-
-func MustAtoi(s string) int {
-	result, err := strconv.Atoi(s)
-	common.CheckErr(err, "Failed to convert to integer")
-	return result
 }
