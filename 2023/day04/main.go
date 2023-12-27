@@ -31,7 +31,33 @@ func (ps *solver) SolvePart1(input string) string {
 }
 
 func (ps *solver) SolvePart2(input string) string {
-	return ""
+	cards := parseInput(input)
+	numCardssMap := map[int]int{}
+
+	// init map
+	for _, card := range cards {
+		numCardssMap[card.id] = 1
+	}
+
+	// gain card copies
+	for _, card := range cards {
+		intersection := common.SetIntersection[int](card.numsYouHave, card.winningNumbers)
+		if len(intersection) == 0 {
+			continue
+		}
+		mul := numCardssMap[card.id]
+		for id := 0; id < len(intersection); id++ {
+			numCardssMap[card.id+id+1] += mul
+		}
+	}
+
+	// count total cards
+	totalCards := 0
+	for _, quantity := range numCardssMap {
+		totalCards += quantity
+	}
+
+	return strconv.Itoa(totalCards)
 }
 
 // Parsing code
@@ -39,7 +65,7 @@ func (ps *solver) SolvePart2(input string) string {
 var cardRegex = regexp.MustCompile(`Card\s+(\d+):`)
 
 type Card struct {
-	id             string
+	id             int
 	numsYouHave    []int
 	winningNumbers []int
 }
@@ -67,7 +93,7 @@ func parseCard(line string) Card {
 	winningNumbersStr := strings.TrimSpace(pieces[1])
 
 	return Card{
-		id:             id,
+		id:             common.MustAtoi(id),
 		numsYouHave:    MustStringToInts(numsYouHaveStr, " "),
 		winningNumbers: MustStringToInts(winningNumbersStr, " "),
 	}
