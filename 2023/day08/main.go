@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -30,25 +29,67 @@ func (ps *solver) SolvePart1(input string) string {
 	current := "AAA"
 	numSteps := 0
 
-	for current != "ZZZ" {
+	for {
 		for _, instruction := range data.instructions {
 			numSteps++
 
 			next := data.nodeToNeighbors[current].Go(string(instruction))
-			fmt.Println(fmt.Sprintf("%s ->  %s", current, next))
 			current = next
 
 			if current == "ZZZ" {
-				return strconv.Itoa(numSteps)
+				goto Escape
 			}
 		}
 	}
+Escape:
 
-	return ""
+	return strconv.Itoa(numSteps)
 }
 
 func (ps *solver) SolvePart2(input string) string {
-	return ""
+	data := parseInput(input)
+
+	answers := make([]int, 0)
+	for node := range data.nodeToNeighbors {
+		if node[2] == 'A' {
+			numSteps := solve(node, data)
+			answers = append(answers, numSteps)
+		}
+	}
+
+	answer := common.LCM(answers[0], answers[1], answers[2:]...)
+	return strconv.Itoa(answer)
+}
+
+//--------------------------------------------------------------------
+// Helpers
+//--------------------------------------------------------------------
+
+func solve(start string, data Input) int {
+	current := start
+	numSteps := 0
+
+	for {
+		for _, instruction := range data.instructions {
+			numSteps++
+
+			next := data.nodeToNeighbors[current].Go(string(instruction))
+			current = next
+
+			if current[2] == 'Z' {
+				return numSteps
+			}
+		}
+	}
+}
+
+func AllHaveSuffix(nodes []string, suffix string) bool {
+	for _, node := range nodes {
+		if node[2] != 'Z' {
+			return false
+		}
+	}
+	return true
 }
 
 //--------------------------------------------------------------------
