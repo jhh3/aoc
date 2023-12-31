@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/jhh3/aoc/common"
@@ -25,17 +24,20 @@ func main() {
 type solver struct{}
 
 func (ps *solver) SolvePart1(input string) string {
-	result := 1
-	races := ps.parseInput(input)
+	result := int64(1)
+	races := ps.parseInput(input, false)
 	for _, race := range races {
 		result *= race.CalculateNumberOfWaysToWin()
 	}
 
-	return strconv.Itoa(result)
+	return fmt.Sprintf("%d", result)
 }
 
 func (ps *solver) SolvePart2(input string) string {
-	return ""
+	race := ps.parseInput(input, true)[0]
+	result := race.CalculateNumberOfWaysToWin()
+
+	return fmt.Sprintf("%d", result)
 }
 
 //--------------------------------------------------------------------
@@ -43,13 +45,13 @@ func (ps *solver) SolvePart2(input string) string {
 //--------------------------------------------------------------------
 
 type RaceTiming struct {
-	time     int
-	distance int
+	time     int64
+	distance int64
 }
 
-func (rt RaceTiming) CalculateNumberOfWaysToWin() int {
-	result := 0
-	for speed := 1; speed <= rt.time; speed++ {
+func (rt RaceTiming) CalculateNumberOfWaysToWin() int64 {
+	result := int64(0)
+	for speed := int64(1); speed <= rt.time; speed++ {
 		timeToTravel := rt.time - speed
 		distance := speed * timeToTravel
 		if distance > rt.distance {
@@ -69,21 +71,25 @@ func (rt RaceTiming) String() string {
 
 var space = regexp.MustCompile(`\s+`)
 
-func (ps *solver) parseInput(input string) []RaceTiming {
+func (ps *solver) parseInput(input string, noSpaces bool) []RaceTiming {
 	lines := strings.Split(string(input), "\n")
 
-	times := strings.Split(space.ReplaceAllString((lines[0]), " "), " ")
-	durations := strings.Split(space.ReplaceAllString((lines[1]), " "), " ")
+	rep := " "
+	if noSpaces {
+		rep = ""
+	}
+
+	timeLine := strings.TrimSpace(strings.Split(lines[0], ":")[1])
+	durationsLine := strings.TrimSpace(strings.Split(lines[1], ":")[1])
+
+	times := strings.Split(space.ReplaceAllString(timeLine, rep), " ")
+	durations := strings.Split(space.ReplaceAllString(durationsLine, rep), " ")
 
 	var result = []RaceTiming{}
 	for i, time := range times {
-		if i == 0 {
-			continue
-		}
-
 		result = append(result, RaceTiming{
-			time:     common.MustAtoi(time),
-			distance: common.MustAtoi(durations[i]),
+			time:     int64(common.MustAtoi(time)),
+			distance: int64(common.MustAtoi(durations[i])),
 		})
 	}
 
