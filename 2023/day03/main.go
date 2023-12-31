@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -37,7 +38,7 @@ func (s *solver) SolvePart1(input string) string {
 			if unicode.IsDigit(char) {
 				isOnNumber = true
 				currentNumber += string(char)
-				currentNumberOkay = currentNumberOkay || IsOkay(grid, rowIdx, colIdx)
+				currentNumberOkay = currentNumberOkay || IsOkay(grid, rowIdx, colIdx, IsSpecialChar)
 			} else {
 				// Were we on a number?
 				if isOnNumber {
@@ -68,14 +69,71 @@ func (s *solver) SolvePart1(input string) string {
 }
 
 func (s *solver) SolvePart2(input string) string {
-	return ""
+	grid := s.parseInput(input)
+
+	isOnNumber := false
+	currentNumber := ""
+	gearMap := make(map[string][]int)
+	gearKey := ""
+
+	for rowIdx, line := range grid {
+		for colIdx, char := range line {
+			// Check if digit
+			if unicode.IsDigit(char) {
+				isOnNumber = true
+				currentNumber += string(char)
+				if gearKey == "" {
+					gearKey = GetOkayKey(grid, rowIdx, colIdx, IsGear)
+				}
+			} else {
+				// Were we on a number?
+				if isOnNumber {
+					if gearKey != "" {
+						val := common.MustAtoi(currentNumber)
+						if _, ok := gearMap[gearKey]; !ok {
+							gearMap[gearKey] = make([]int, 0)
+						}
+						gearMap[gearKey] = append(gearMap[gearKey], val)
+					}
+
+					// reset
+					isOnNumber = false
+					gearKey = ""
+					currentNumber = ""
+				}
+			}
+		}
+		if isOnNumber {
+			if gearKey != "" {
+				val := common.MustAtoi(currentNumber)
+				if _, ok := gearMap[gearKey]; !ok {
+					gearMap[gearKey] = make([]int, 0)
+				}
+				gearMap[gearKey] = append(gearMap[gearKey], val)
+			}
+
+			// reset
+			isOnNumber = false
+			currentNumber = ""
+			gearKey = ""
+		}
+	}
+
+	result := 0
+	for _, values := range gearMap {
+		if len(values) == 2 {
+			result += values[0] * values[1]
+		}
+	}
+
+	return strconv.Itoa(result)
 }
 
 //--------------------------------------------------------------------
 // Helpers
 //--------------------------------------------------------------------
 
-func IsOkay(grid [][]rune, rowIdx, colIdx int) bool {
+func IsOkay(grid [][]rune, rowIdx, colIdx int, checkFn func(rune) bool) bool {
 	for row := rowIdx - 1; row <= rowIdx+1; row++ {
 		for col := colIdx - 1; col <= colIdx+1; col++ {
 			// Is it in bounds?
@@ -83,7 +141,7 @@ func IsOkay(grid [][]rune, rowIdx, colIdx int) bool {
 				continue
 			}
 			candidate := grid[row][col]
-			if IsSpecialChar(candidate) {
+			if checkFn(candidate) {
 				return true
 			}
 		}
@@ -91,7 +149,27 @@ func IsOkay(grid [][]rune, rowIdx, colIdx int) bool {
 	return false
 }
 
+func GetOkayKey(grid [][]rune, rowIdx, colIdx int, checkFn func(rune) bool) string {
+	for row := rowIdx - 1; row <= rowIdx+1; row++ {
+		for col := colIdx - 1; col <= colIdx+1; col++ {
+			// Is it in bounds?
+			if row < 0 || row >= len(grid) || col < 0 || col >= len(grid[row]) {
+				continue
+			}
+			candidate := grid[row][col]
+			if checkFn(candidate) {
+				return fmt.Sprintf("%d,%d", row, col)
+			}
+		}
+	}
+	return ""
+}
+
 // = / + & % - # @ $
+
+func IsGear(char rune) bool {
+	return char == '*'
+}
 
 var specialChars = []rune{'#', '~', '|', '*', '/', '%', '$', '=', '@', '&', '-', '+'}
 
