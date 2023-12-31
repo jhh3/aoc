@@ -1,22 +1,14 @@
 package main
 
 import (
+	_ "embed"
 	"testing"
 
 	"github.com/jhh3/aoc/common"
 )
 
-const inputStr = `467..114..
-...*......
-..35..633.
-......#...
-617*......
-.....+.58.
-..592.....
-......755.
-...$.*....
-.664.598..
-`
+//go:embed test_example.txt
+var exampleInput string
 
 func Test_solution(t *testing.T) {
 	common.RunTests(
@@ -25,13 +17,13 @@ func Test_solution(t *testing.T) {
 		[]common.Test{
 			{
 				Name:  "day03-example",
-				Input: inputStr,
+				Input: exampleInput,
 				Part:  1,
 				Want:  "4361",
 			},
 			{
 				Name:  "day03-example",
-				Input: inputStr,
+				Input: exampleInput,
 				Part:  2,
 				Want:  "467835",
 			},

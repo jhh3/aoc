@@ -188,8 +188,10 @@ func IsSpecialChar(char rune) bool {
 //--------------------------------------------------------------------
 
 func (s *solver) parseInput(input string) [][]rune {
+	input = strings.TrimRight(input, "\n")
 	lines := strings.Split(string(input), "\n")
-	result := make([][]rune, len(lines)-1)
+
+	result := make([][]rune, len(lines))
 	for i, line := range lines {
 		cleanLine := strings.TrimSpace(line)
 		if cleanLine == "" {
