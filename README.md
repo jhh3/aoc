@@ -14,9 +14,17 @@ Random coding problems for me to practice new languages and keep skills sharp.
     Install [cookies.txt](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) chrome extension.
 
     Download cookies file. Delete comment rows.
+    Save to `~/Downloads/cookies.tx`.
+    TODO: parametarize with single cookie instead of entire file.
 
-2. Run day
+2. Run day and part
 
     ```bash
-    go run 2023/day01/main.go --cookies ~/Downloads/cookies.txt
+    make run YEAR=2023 DAY=04 PART=1
+    ```
+
+    Or tests
+
+    ```bash
+    make test
     ```
