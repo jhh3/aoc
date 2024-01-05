@@ -28,3 +28,6 @@ Random coding problems for me to practice new languages and keep skills sharp.
     ```bash
     make test
     ```
+# Acknowledgements
+
+In a big part inspired by [alexchao](https://github.com/alexchao26/advent-of-code-go).

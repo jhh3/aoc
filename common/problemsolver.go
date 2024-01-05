@@ -17,37 +17,34 @@ type ProblemRunner interface {
 type baseProblemRunnerImpl struct {
 	flags  *ProblemSolverFlags
 	Solver ProblemSolver
-	Reader ProblemReader
+	input  string
 }
 
-func NewProblemRunner(flags *ProblemSolverFlags, solver ProblemSolver, reader ProblemReader) ProblemRunner {
+func NewProblemRunner(flags *ProblemSolverFlags, solver ProblemSolver, input string) ProblemRunner {
 	return &baseProblemRunnerImpl{
 		flags:  flags,
 		Solver: solver,
-		Reader: reader,
+		input:  input,
 	}
 }
 
-func RunFromSolver(solver ProblemSolver, year, day int) {
-	flags := MustParseFlags(os.Args[1:], year, day, true)
+func RunFromSolver(solver ProblemSolver, input string) {
+	flags := MustParseSolverFlags(os.Args[1:], true)
 	runner := NewProblemRunner(
 		flags,
 		solver,
-		NewProblemReader(flags),
+		input,
 	)
 	runner.Run()
 }
 
 func (pr *baseProblemRunnerImpl) Run() {
-	fmt.Println("Fetching input...")
-	input := pr.Reader.MustGetInput()
-
 	fmt.Println("Solving...")
 	var result string
 	if pr.flags.Part == 1 {
-		result = pr.Solver.SolvePart1(input)
+		result = pr.Solver.SolvePart1(pr.input)
 	} else {
-		result = pr.Solver.SolvePart2(input)
+		result = pr.Solver.SolvePart2(pr.input)
 	}
 	fmt.Println("Result:", result)
 }
@@ -63,11 +60,11 @@ type ProblemReader interface {
 }
 
 type baseProblemReaderImpl struct {
-	flags      *ProblemSolverFlags
+	flags      *InputGetterFlags
 	httpClient *http.Client
 }
 
-func NewProblemReader(flags *ProblemSolverFlags) ProblemReader {
+func NewProblemReader(flags *InputGetterFlags) ProblemReader {
 	pr := baseProblemReaderImpl{flags: flags}
 	pr.initHttpClient()
 	return &pr
