@@ -7,11 +7,6 @@ import (
 	"github.com/jhh3/aoc/common"
 )
 
-const (
-	DAY  = 3
-	YEAR = 2023
-)
-
 //go:embed input.txt
 var input string
 
@@ -24,7 +19,7 @@ func init() {
 }
 
 func main() {
-	common.RunFromSolver(&solver{}, YEAR, DAY)
+	common.RunFromSolver(&solver{}, input)
 }
 
 //--------------------------------------------------------------------

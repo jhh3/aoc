@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 # https://gist.github.com/prwhite/8168133
 help: ## Show this help
 	@ echo 'Usage: make <target>'
@@ -13,7 +15,24 @@ test: ## Run tests, all or a single day using optional YEAR and DAY variables
 	fi
 
 run: ## Run a specific year, day, and part using DAY, YEAR and PART variables
-	go run $(YEAR)/day$(DAY)/main.go --cookie ~/Downloads/cookies.txt --part $(PART)
+	go run $(YEAR)/day$(DAY)/main.go --part $(PART)
 
 
-.PHONY: test run help
+skeleton: ## create solution template files files, optional: $DAY and $YEAR
+	@ if [[ -n $$DAY && -n $$YEAR ]]; then \
+		go run scripts/cmd/skeleton/main.go -day $(DAY) -year $(YEAR) ; \
+	elif [[ -n $$DAY ]]; then \
+		go run scripts/cmd/skeleton/main.go -day $(DAY); \
+	else \
+		go run scripts/cmd/skeleton/main.go; \
+	fi
+
+input: ## get input, requires $AOC_SESSION_COOKIE, optional: $DAY and $YEAR
+	@ if [[ -n $$YEAR ]]; then \
+		go run scripts/cmd/input/main.go -day $(DAY) -cookie $(COOKIE); \
+	else \
+		go run scripts/cmd/input/main.go -day $(DAY) -year $(YEAR) -cookie $(COOKIE); \
+	fi
+
+
+.PHONY: test run help skeleton

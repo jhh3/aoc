@@ -75,5 +75,5 @@ func (ig *InputGetterFlags) InputUrl() string {
 }
 
 func (ig *InputGetterFlags) CacheKey() string {
-	return fmt.Sprintf("%d/%02d/input.txt", ig.Year, ig.Day)
+	return fmt.Sprintf("%d/day%02d/input.txt", ig.Year, ig.Day)
 }
