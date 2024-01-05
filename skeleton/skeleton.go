@@ -47,7 +47,15 @@ func makeFile(filename string, day, year int, tmpl *template.Template) {
 		log.Fatalf("creating %s file: %v", filename, err)
 	}
 
-	tmpl.ExecuteTemplate(f, fmt.Sprintf("%s.tmpl", filename), nil)
+	data := struct {
+		Day  string
+		Year int
+	}{
+		Day:  fmt.Sprintf("%02d", day),
+		Year: year,
+	}
+
+	tmpl.ExecuteTemplate(f, fmt.Sprintf("%s.tmpl", filename), data)
 }
 
 func ensureNotOverwriting(filename string) {

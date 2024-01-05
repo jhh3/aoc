@@ -35,4 +35,8 @@ input: ## get input, requires $AOC_SESSION_COOKIE, optional: $DAY and $YEAR
 	fi
 
 
-.PHONY: test run help skeleton
+init-question: skeleton input ## create question template and get input files, optional: $DAY and $YEAR
+	@ echo "Question $(YEAR) day $(DAY) initialized"
+
+
+.PHONY: test run help skeleton init-question input

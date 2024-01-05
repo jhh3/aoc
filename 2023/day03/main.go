@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,13 +10,19 @@ import (
 	"github.com/jhh3/aoc/common"
 )
 
-const (
-	DAY  = 3
-	YEAR = 2023
-)
+//go:embed input.txt
+var input string
+
+func init() {
+	// do this in init (not main) so test file has same input
+	input = strings.TrimRight(input, "\n")
+	if len(input) == 0 {
+		panic("empty input.txt file")
+	}
+}
 
 func main() {
-	common.RunFromSolver(&solver{}, YEAR, DAY)
+	common.RunFromSolver(&solver{}, input)
 }
 
 //--------------------------------------------------------------------

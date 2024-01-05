@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"regexp"
 	"strconv"
 	"strings"
@@ -8,13 +9,19 @@ import (
 	"github.com/jhh3/aoc/common"
 )
 
-const (
-	DAY  = 8
-	YEAR = 2023
-)
+//go:embed input.txt
+var input string
+
+func init() {
+	// do this in init (not main) so test file has same input
+	input = strings.TrimRight(input, "\n")
+	if len(input) == 0 {
+		panic("empty input.txt file")
+	}
+}
 
 func main() {
-	common.RunFromSolver(&solver{}, YEAR, DAY)
+	common.RunFromSolver(&solver{}, input)
 }
 
 //--------------------------------------------------------------------
@@ -140,7 +147,8 @@ func parseInput(input string) Input {
 	return result
 }
 
-var nodeRegex = regexp.MustCompile(`([A-Z]+) = \(([A-Z]+), ([A-Z]+)\)`)
+// ex input: 11A = (CDC, PSH)
+var nodeRegex = regexp.MustCompile(`([A-Z0-9]+) = \(([A-Z0-9]+), ([A-Z0-9]+)\)`)
 
 func parseNode(input string) Node {
 	// Regex to parse node, e.g.

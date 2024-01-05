@@ -7,7 +7,7 @@ import (
 	"github.com/jhh3/aoc/common"
 )
 
-//go:embed test_example.txt
+//go:embed example_input.txt
 var exampleInput string
 
 func Test_y2023d03(t *testing.T) {

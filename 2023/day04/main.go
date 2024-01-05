@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"math"
 	"regexp"
 	"strconv"
@@ -9,9 +10,24 @@ import (
 	"github.com/jhh3/aoc/common"
 )
 
-func main() {
-	common.RunFromSolver(&solver{}, 2023, 4)
+//go:embed input.txt
+var input string
+
+func init() {
+	// do this in init (not main) so test file has same input
+	input = strings.TrimRight(input, "\n")
+	if len(input) == 0 {
+		panic("empty input.txt file")
+	}
 }
+
+func main() {
+	common.RunFromSolver(&solver{}, input)
+}
+
+//--------------------------------------------------------------------
+// Solution
+//--------------------------------------------------------------------
 
 type solver struct{}
 
