@@ -3,8 +3,10 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"runtime"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/jhh3/aoc/common"
 )
@@ -18,6 +20,9 @@ func init() {
 	if len(input) == 0 {
 		panic("empty input.txt file")
 	}
+
+	// use all cores
+	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 func main() {
@@ -44,7 +49,40 @@ func (s *solver) SolvePart1(input string) string {
 }
 
 func (s *solver) SolvePart2(input string) string {
-	panic("not implemented")
+	seedInput := ParseSeedInput(input)
+	var wg sync.WaitGroup
+
+	processSeed := func(seed int, rngLen int, ch chan<- int) {
+		defer wg.Done()
+		var locations []int
+		for i := 0; i < rngLen; i++ {
+			locations = append(locations, seedInput.GetLocation(seed+i))
+		}
+		minLocation := slices.Min(locations)
+		ch <- minLocation
+	}
+
+	numSeeds := len(seedInput.Seeds) / 2
+	wg.Add(numSeeds)
+	valueChan := make(chan int, numSeeds)
+
+	for idx, seed := range seedInput.Seeds {
+		if idx%2 == 0 {
+			go processSeed(seed, seedInput.Seeds[idx+1], valueChan)
+		}
+	}
+
+	wg.Wait()
+	close(valueChan)
+
+	locations := []int{}
+	for result := range valueChan {
+		locations = append(locations, result)
+	}
+
+	minLocation := slices.Min(locations)
+
+	return fmt.Sprintf("%d", minLocation)
 }
 
 //--------------------------------------------------------------------
