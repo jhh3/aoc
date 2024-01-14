@@ -31,7 +31,7 @@ func main() {
 type solver struct{}
 
 func (s *solver) SolvePart1(input string) string {
-	camelCardInput := parseCamelCardInput(input)
+	camelCardInput := parseCamelCardInput(input, false)
 
 	// Sort hands
 	sort.Slice(camelCardInput.Hands, func(i, j int) bool {
@@ -47,7 +47,19 @@ func (s *solver) SolvePart1(input string) string {
 }
 
 func (s *solver) SolvePart2(input string) string {
-	panic("not implemented")
+	camelCardInput := parseCamelCardInput(input, true)
+
+	// Sort hands
+	sort.Slice(camelCardInput.Hands, func(i, j int) bool {
+		return camelCardInput.Hands[i].Compare(camelCardInput.Hands[j]) == -1
+	})
+
+	result := 0.0
+	for rank, hand := range camelCardInput.Hands {
+		result += hand.Bid * float64(rank+1)
+	}
+
+	return fmt.Sprintf("%.0f", result)
 }
 
 //--------------------------------------------------------------------
@@ -105,15 +117,22 @@ type CamelCardInput struct {
 	Hands []Hand
 }
 
-func parseCamelCardInput(input string) CamelCardInput {
+func parseCamelCardInput(input string, enableJokers bool) CamelCardInput {
 	result := CamelCardInput{}
 
 	lines := strings.Split(string(input), "\n")
 
 	for _, line := range lines {
 		cleanLine := strings.TrimRight(line, "\n")
+		if cleanLine == "" {
+			continue
+		}
 
-		result.Hands = append(result.Hands, parseHand(cleanLine))
+		if enableJokers {
+			result.Hands = append(result.Hands, parseHandJokers(cleanLine))
+		} else {
+			result.Hands = append(result.Hands, parseHand(cleanLine))
+		}
 	}
 
 	return result
@@ -168,6 +187,118 @@ func parseHand(input string) Hand {
 			handType = TWO_PAIRS
 		} else if countMap[2] == 1 {
 			handType = ONE_PAIR
+		}
+	}
+
+	return Hand{
+		Cards:      cardStr,
+		CardValues: cardValues,
+		Type:       handType,
+		Bid:        float64(common.MustAtoi(strings.TrimSpace(pieces[1]))),
+	}
+}
+
+func parseHandJokers(input string) Hand {
+	pieces := strings.Split(input, " ")
+	cardStr := strings.TrimSpace(pieces[0])
+	cardValues := []int{}
+	for _, card := range cardStr {
+		switch card {
+		case 'A':
+			cardValues = append(cardValues, 14)
+		case 'K':
+			cardValues = append(cardValues, 13)
+		case 'Q':
+			cardValues = append(cardValues, 12)
+		case 'J':
+			cardValues = append(cardValues, 1)
+		case 'T':
+			cardValues = append(cardValues, 10)
+		default:
+			cardValues = append(cardValues, common.MustAtoi(string(card)))
+		}
+	}
+
+	// Classify hand
+	jokerCount := 0
+	valCountMap := map[int]int{}
+	for _, val := range cardValues {
+		if val == 1 {
+			jokerCount++
+		} else {
+			valCountMap[val]++
+		}
+	}
+
+	countMap := map[int]int{}
+	for _, count := range valCountMap {
+		countMap[count]++
+	}
+
+	handType := HIGH_CARD
+	if countMap[5] == 1 {
+		handType = FIVE_OF_A_KIND
+	}
+	if countMap[4] == 1 {
+		handType = FOUR_OF_A_KIND
+	}
+	if countMap[3] == 1 {
+		if countMap[2] == 1 {
+			handType = FULL_HOUSE
+		} else {
+			handType = THREE_OF_A_KIND
+		}
+	} else {
+		if countMap[2] == 2 {
+			handType = TWO_PAIRS
+		} else if countMap[2] == 1 {
+			handType = ONE_PAIR
+		}
+	}
+
+	if jokerCount > 0 {
+		if handType == FOUR_OF_A_KIND {
+			handType = FIVE_OF_A_KIND
+		}
+		if handType == THREE_OF_A_KIND {
+			if jokerCount == 2 {
+				handType = FIVE_OF_A_KIND
+			} else {
+				handType = FOUR_OF_A_KIND
+			}
+		}
+		if handType == TWO_PAIRS {
+			if jokerCount == 1 {
+				handType = FULL_HOUSE
+			}
+		}
+		if handType == ONE_PAIR {
+			if jokerCount == 3 {
+				handType = FIVE_OF_A_KIND
+			}
+			if jokerCount == 2 {
+				handType = FOUR_OF_A_KIND
+			}
+			if jokerCount == 1 {
+				handType = THREE_OF_A_KIND
+			}
+		}
+		if handType == HIGH_CARD {
+			if jokerCount == 5 {
+				handType = FIVE_OF_A_KIND
+			}
+			if jokerCount == 4 {
+				handType = FIVE_OF_A_KIND
+			}
+			if jokerCount == 3 {
+				handType = FOUR_OF_A_KIND
+			}
+			if jokerCount == 2 {
+				handType = THREE_OF_A_KIND
+			}
+			if jokerCount == 1 {
+				handType = ONE_PAIR
+			}
 		}
 	}
 

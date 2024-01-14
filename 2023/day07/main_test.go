@@ -27,12 +27,12 @@ func Test_y2023d07(t *testing.T) {
 				Part:  1,
 				Want:  "6440",
 			},
-			// {
-			// 	Name:  "provided-example",
-			// 	Input: exampleInput,
-			// 	Part:  2,
-			// 	Want:  "",
-			// },
+			{
+				Name:  "provided-example",
+				Input: exampleInput,
+				Part:  2,
+				Want:  "5905",
+			},
 		},
 	)
 }
