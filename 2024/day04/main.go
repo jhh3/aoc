@@ -45,12 +45,34 @@ func (s *solver) SolvePart1(input string) string {
 }
 
 func (s *solver) SolvePart2(input string) string {
-	// todo
-	return ""
+	problemInput := parseInput(input)
+
+	xCount := 0
+	for r, row := range problemInput.WordSearch {
+		for c, letter := range row {
+			if letter == 'A' {
+				xCount += problemInput.CountX(r, c)
+			}
+		}
+	}
+
+	return strconv.Itoa(xCount)
 }
 
 type ProblemInput struct {
 	WordSearch [][]rune
+}
+
+func (pi *ProblemInput) CountX(row, col int) int {
+	masOnDiagonalLeft := (pi.E(row-1, col-1, 'M') && pi.E(row+1, col+1, 'S')) || (pi.E(row-1, col-1, 'S') && pi.E(row+1, col+1, 'M'))
+
+	masOnDiagonalRight := (pi.E(row-1, col+1, 'M') && pi.E(row+1, col-1, 'S')) || (pi.E(row-1, col+1, 'S') && pi.E(row+1, col-1, 'M'))
+
+	if masOnDiagonalLeft && masOnDiagonalRight {
+		return 1
+	}
+
+	return 0
 }
 
 func (pi *ProblemInput) CountAtLocation(row, col int) int {
