@@ -54,3 +54,8 @@ func LCM(a, b int, integers ...int) int {
 
 	return result
 }
+
+// Remove ith element from slice
+func RemoveIndex[T any](slice []T, i int) []T {
+	return append(slice[:i], slice[i+1:]...)
+}
