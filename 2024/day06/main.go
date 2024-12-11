@@ -37,8 +37,9 @@ func (s *solver) SolvePart1(input string) string {
 }
 
 func (s *solver) SolvePart2(input string) string {
-	// todo
-	return ""
+	problemInput := parseInput(input)
+	waysToCreateALoop := problemInput.CountWaysToCreaeALoop()
+	return strconv.Itoa(waysToCreateALoop)
 }
 
 type ProblemInput struct {
@@ -80,6 +81,73 @@ func (pi *ProblemInput) VisitGrid() int {
 
 	// Recurse
 	return pi.VisitGrid()
+}
+
+func (pi *ProblemInput) CountWaysToCreaeALoop() int {
+	count := 0
+
+	for r, row := range pi.Grid {
+		for c, element := range row {
+			// check if we can place an obstacle here
+			if element == '.' {
+				copyProblemInput := ProblemInput{
+					Grid:         make([][]rune, len(pi.Grid)),
+					VisitedCount: 0,
+					Direction:    pi.Direction,
+					CurRow:       pi.CurRow,
+					CurCol:       pi.CurCol,
+				}
+				// copy the grid
+				for i := range pi.Grid {
+					copyProblemInput.Grid[i] = make([]rune, len(pi.Grid[i]))
+					copy(copyProblemInput.Grid[i], pi.Grid[i])
+				}
+
+				copyProblemInput.Grid[r][c] = '#'
+
+				threshold := len(pi.Grid) * len(pi.Grid[0]) * 2
+				if copyProblemInput.LoopExists(pi.CurRow, pi.CurCol, pi.Direction, 0, threshold) {
+					count++
+				}
+			}
+		}
+	}
+
+	return count
+}
+
+func (pi *ProblemInput) LoopExists(startRow, startCol, direction, num, threshold int) bool {
+	// Check if move forward leads to loop
+	if num > threshold {
+		return true
+	}
+
+	// Get the next location the guard would try to move to
+	nextRow, nextCol := pi.NextRowCol()
+
+	// Inbounds check
+	if nextRow < 0 || nextRow >= len(pi.Grid) || nextCol < 0 || nextCol >= len(pi.Grid[0]) {
+		// If moving out of bounds, no loop
+		return false
+	}
+
+	// Obstacle check
+	if nextElement := pi.Grid[nextRow][nextCol]; nextElement == '#' {
+		// if obstacle, turn right
+		pi.Direction = (pi.Direction + 1) % 4
+	} else {
+		// Move forward
+		pi.CurRow = nextRow
+		pi.CurCol = nextCol
+	}
+
+	// inLocationWeStarted := pi.CurRow == startRow && pi.CurCol == startCol
+	// if inLocationWeStarted {
+	// 	fmt.Printf("\t >> Loop exists if we return to start location\n")
+	// }
+
+	// Recurse
+	return pi.LoopExists(startRow, startCol, direction, num+1, threshold)
 }
 
 func (pi *ProblemInput) NextRowCol() (int, int) {
