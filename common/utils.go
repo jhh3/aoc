@@ -59,3 +59,11 @@ func LCM(a, b int, integers ...int) int {
 func RemoveIndex[T any](slice []T, i int) []T {
 	return append(slice[:i], slice[i+1:]...)
 }
+
+// Insert element into slice at index
+func Insert[T any](slice []T, index int, element T) []T {
+	slice = append(slice, element)
+	copy(slice[index+1:], slice[index:])
+	slice[index] = element
+	return slice
+}

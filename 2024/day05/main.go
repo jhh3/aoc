@@ -31,27 +31,63 @@ type solver struct{}
 
 func (s *solver) SolvePart1(input string) string {
 	problemInput := parseInput(input)
-	result := problemInput.SumMiddleOfValidPageOrders()
+	result := 0
+	for _, pageOrder := range problemInput.ValidPageOrders() {
+		middlePage := pageOrder.pages[len(pageOrder.pages)/2]
+		result += middlePage
+	}
 	return strconv.Itoa(result)
 }
 
 func (s *solver) SolvePart2(input string) string {
-	// TODO
-	return ""
+	problemInput := parseInput(input)
+	result := 0
+	for _, invalidPageOrder := range problemInput.InvalidPageOrders() {
+		correctedPageOrder := invalidPageOrder.Correct(problemInput.rules)
+		result += correctedPageOrder.pages[len(correctedPageOrder.pages)/2]
+	}
+	return strconv.Itoa(result)
 }
 
 type PageOrder struct {
 	pages []int
 }
 
-func (po *PageOrder) IsValid(rules map[int][]int) bool {
-	seen := make(map[int]bool)
-	ifSeenInvalid := make(map[int]bool)
+func (po *PageOrder) Correct(rules map[int][]int) *PageOrder {
+	// If valid, return
+	validity := po.IsValid(rules)
+	if validity.IsValid {
+		return po
+	}
 
-	for _, page := range po.pages {
+	// If invalid, make correction and continue
+	badPage := po.pages[validity.InvalidPageIndex]
+	pagesCopy := make([]int, len(po.pages))
+	copy(pagesCopy, po.pages)
+
+	// Remove bad page
+	newPages := common.RemoveIndex(pagesCopy, validity.InvalidPageIndex)
+	// Insert page before the page it should come before
+	newPages = common.Insert(newPages, validity.ShouldComeBeforePageIndex, badPage)
+	newPageOrder := &PageOrder{pages: newPages}
+
+	return newPageOrder.Correct(rules)
+}
+
+type Validity struct {
+	IsValid                   bool
+	InvalidPageIndex          int // -1 if valid
+	ShouldComeBeforePageIndex int // -1 if valid
+}
+
+func (po *PageOrder) IsValid(rules map[int][]int) Validity {
+	seen := make(map[int]bool)
+	ifSeenInvalid := make(map[int]int)
+
+	for i, page := range po.pages {
 		// ensure we shouldn't have seen this page already
-		if _, ok := ifSeenInvalid[page]; ok {
-			return false
+		if shouldComeBeforePageIndex, ok := ifSeenInvalid[page]; ok {
+			return Validity{IsValid: false, InvalidPageIndex: i, ShouldComeBeforePageIndex: shouldComeBeforePageIndex}
 		}
 
 		// mark this page as seen
@@ -63,14 +99,14 @@ func (po *PageOrder) IsValid(rules map[int][]int) bool {
 				if _, ok := seen[mustBeProducedFirst]; !ok {
 					// if we've not seen this page yet, we should never see it
 					// if we see it, this page order is invalid
-					ifSeenInvalid[mustBeProducedFirst] = true
+					ifSeenInvalid[mustBeProducedFirst] = i
 				}
 			}
 		}
 		// no rules for this page, continue
 	}
 
-	return true
+	return Validity{IsValid: true, InvalidPageIndex: -1, ShouldComeBeforePageIndex: -1}
 }
 
 type ProblemInput struct {
@@ -82,27 +118,26 @@ type ProblemInput struct {
 	pageOrders []PageOrder
 }
 
-func (pi *ProblemInput) SumMiddleOfValidPageOrders() int {
-	result := 0
-
-	validPageOrders := pi.ValidPageOrders()
-	for _, pageOrder := range validPageOrders {
-		middlePage := pageOrder.pages[len(pageOrder.pages)/2]
-		result += middlePage
-	}
-
-	return result
-}
-
 func (pi *ProblemInput) ValidPageOrders() []PageOrder {
 	validPageOrders := make([]PageOrder, 0)
 	for _, pageOrder := range pi.pageOrders {
-		if pageOrder.IsValid(pi.rules) {
+		if pageOrder.IsValid(pi.rules).IsValid {
 			validPageOrders = append(validPageOrders, pageOrder)
 		}
 	}
 
 	return validPageOrders
+}
+
+func (pi *ProblemInput) InvalidPageOrders() []PageOrder {
+	invalidPageOrders := make([]PageOrder, 0)
+	for _, pageOrder := range pi.pageOrders {
+		if !pageOrder.IsValid(pi.rules).IsValid {
+			invalidPageOrders = append(invalidPageOrders, pageOrder)
+		}
+	}
+
+	return invalidPageOrders
 }
 
 func parseInput(input string) *ProblemInput {

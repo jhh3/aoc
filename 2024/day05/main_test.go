@@ -25,7 +25,7 @@ func Test_y2024d05(t *testing.T) {
 				Name:  "provided-example",
 				Input: exampleInput,
 				Part:  2,
-				Want:  "",
+				Want:  "123",
 			},
 		},
 	)
