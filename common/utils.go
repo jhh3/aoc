@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"strconv"
 
 	"golang.org/x/exp/constraints"
@@ -66,4 +67,23 @@ func Insert[T any](slice []T, index int, element T) []T {
 	copy(slice[index+1:], slice[index:])
 	slice[index] = element
 	return slice
+}
+
+// Integer exponentiation
+func IntPow(base, exp int) int {
+	result := 1
+	for exp > 0 {
+		if exp%2 == 1 {
+			result *= base
+		}
+		base *= base
+		exp /= 2
+	}
+	return result
+}
+
+// Concatenate two ints
+func ConcatInts(a, b int) int {
+	strValue := fmt.Sprintf("%d%d", a, b)
+	return MustAtoi(strValue)
 }

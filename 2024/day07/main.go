@@ -31,7 +31,7 @@ type solver struct{}
 
 func (s *solver) SolvePart1(input string) string {
 	problemInput := parseInput(input)
-	equations := problemInput.EquationsWithSolutions()
+	equations := problemInput.EquationsWithSolutionsPart1()
 	sumOfValues := 0
 	for _, equation := range equations {
 		sumOfValues += equation.Value
@@ -40,8 +40,13 @@ func (s *solver) SolvePart1(input string) string {
 }
 
 func (s *solver) SolvePart2(input string) string {
-	// TODO
-	return ""
+	problemInput := parseInput(input)
+	equations := problemInput.EquationsWithSolutionsPart2()
+	sumOfValues := 0
+	for _, equation := range equations {
+		sumOfValues += equation.Value
+	}
+	return strconv.Itoa(sumOfValues)
 }
 
 type Equation struct {
@@ -49,7 +54,7 @@ type Equation struct {
 	Numbers []int
 }
 
-func (e *Equation) HasSolution() bool {
+func (e *Equation) HasSolutionPart1() bool {
 	operations := []string{"+", "*"}
 	numOperators := len(e.Numbers) - 1
 	numPossibleEquations := 1 << numOperators
@@ -74,14 +79,51 @@ func (e *Equation) HasSolution() bool {
 	return false
 }
 
+func (e *Equation) HasSolutionPart2() bool {
+	operations := []string{"+", "*", "||"} // add, multiply, concatenate
+	numOperators := len(e.Numbers) - 1
+	numPossibleEquations := common.IntPow(3, numOperators)
+	for i := 0; i < numPossibleEquations; i++ {
+		result := e.Numbers[0]
+		for j, num := range e.Numbers[1:] {
+			operatorIndex := (i / common.IntPow(3, j)) % 3
+			operator := operations[operatorIndex]
+
+			if operator == "+" {
+				result += num
+			} else if operator == "*" {
+				result *= num
+			} else { // concatenate
+				result = common.ConcatInts(result, num)
+			}
+		}
+
+		if result == e.Value {
+			return true
+		}
+	}
+
+	return false
+}
+
 type ProblemInput struct {
 	Equations []Equation
 }
 
-func (pi *ProblemInput) EquationsWithSolutions() []Equation {
+func (pi *ProblemInput) EquationsWithSolutionsPart1() []Equation {
 	equations := make([]Equation, 0)
 	for _, equation := range pi.Equations {
-		if equation.HasSolution() {
+		if equation.HasSolutionPart1() {
+			equations = append(equations, equation)
+		}
+	}
+	return equations
+}
+
+func (pi *ProblemInput) EquationsWithSolutionsPart2() []Equation {
+	equations := make([]Equation, 0)
+	for _, equation := range pi.Equations {
+		if equation.HasSolutionPart2() {
 			equations = append(equations, equation)
 		}
 	}
