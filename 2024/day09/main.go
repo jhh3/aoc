@@ -30,23 +30,19 @@ func main() {
 type solver struct{}
 
 func (s *solver) SolvePart1(input string) string {
-	// TODO
 	problemInput := parseInput(input)
 	problemInput.ExpandDiskMap()
-	problemInput.Compact()
+	problemInput.CompactPart1()
 	checksum := problemInput.ComputeChecksum()
-
-	// fmt.Printf("DiskMap: %v\n", problemInput.DiskMap)
-	// fmt.Printf("DiskMap: %v\n", problemInput.ExpandedDiskMap)
-	// fmt.Printf("DiskMap: %v\n", problemInput.CompactExpandedDiskMap)
-	// fmt.Printf("Checksum: %v\n", checksum)
-
 	return strconv.Itoa(checksum)
 }
 
 func (s *solver) SolvePart2(input string) string {
-	// TODO
-	return ""
+	problemInput := parseInput(input)
+	problemInput.ExpandDiskMap()
+	problemInput.CompactPart2()
+	checksum := problemInput.ComputeChecksum()
+	return strconv.Itoa(checksum)
 }
 
 type ProblemInput struct {
@@ -59,14 +55,14 @@ func (pi *ProblemInput) ComputeChecksum() int {
 	sum := 0
 	for idx, fileId := range pi.CompactExpandedDiskMap {
 		if fileId == -1 {
-			break
+			continue
 		}
 		sum += idx * fileId
 	}
 	return sum
 }
 
-func (pi *ProblemInput) Compact() {
+func (pi *ProblemInput) CompactPart1() {
 	// copy the expanded disk map
 	pi.CompactExpandedDiskMap = make([]int, len(pi.ExpandedDiskMap))
 	copy(pi.CompactExpandedDiskMap, pi.ExpandedDiskMap)
@@ -90,6 +86,82 @@ func (pi *ProblemInput) Compact() {
 
 		// swap
 		pi.CompactExpandedDiskMap[startPtr], pi.CompactExpandedDiskMap[endPtr] = pi.CompactExpandedDiskMap[endPtr], pi.CompactExpandedDiskMap[startPtr]
+	}
+}
+
+func (pi *ProblemInput) CompactPart2() {
+	// copy the expanded disk map
+	pi.CompactExpandedDiskMap = make([]int, len(pi.ExpandedDiskMap))
+	copy(pi.CompactExpandedDiskMap, pi.ExpandedDiskMap)
+
+	startPtr := 0
+	endPtr := len(pi.CompactExpandedDiskMap) - 1
+	for startPtr < endPtr {
+		endValue := pi.CompactExpandedDiskMap[endPtr]
+
+		// do we want to move what's at endPtr
+		if endValue == -1 {
+			endPtr--
+			continue
+		}
+
+		// is startPtr already pointing at a file?
+		if pi.CompactExpandedDiskMap[startPtr] != -1 {
+			startPtr++
+			continue
+		}
+
+		// We're going to try our best to move this file
+		tmpStartPtr := startPtr
+
+		// how big is the file?
+		fileLength := 0
+		for i := endPtr; i >= startPtr; i-- {
+			if pi.CompactExpandedDiskMap[i] == endValue {
+				fileLength++
+			} else {
+				break
+			}
+		}
+
+		// look for contiguous free space
+		moveIdx := -1
+		for tmpStartPtr < endPtr {
+			// is startPtr already pointing at a file?
+			if pi.CompactExpandedDiskMap[tmpStartPtr] != -1 {
+				tmpStartPtr++
+				continue
+			}
+
+			// how much contiguous free space is there?
+			freeSpace := 0
+			for i := tmpStartPtr; i < endPtr; i++ {
+				if pi.CompactExpandedDiskMap[i] == -1 {
+					freeSpace++
+				} else {
+					break
+				}
+			}
+
+			if freeSpace >= fileLength {
+				moveIdx = tmpStartPtr
+				break
+			} else {
+				tmpStartPtr += freeSpace
+			}
+		}
+
+		// can we move the file?
+		if moveIdx != -1 {
+			// move the file
+			for i := 0; i < fileLength; i++ {
+				pi.CompactExpandedDiskMap[moveIdx+i] = endValue
+				pi.CompactExpandedDiskMap[endPtr-i] = -1
+			}
+		}
+
+		// In either case, move the endPtr
+		endPtr -= fileLength
 	}
 }
 
