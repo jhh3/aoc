@@ -31,13 +31,14 @@ type solver struct{}
 
 func (s *solver) SolvePart1(input string) string {
 	problemInput := parseInput(input)
-	antinodeCount := problemInput.AnnotateAntinodes()
+	antinodeCount := problemInput.AnnotateAntinodesPart1()
 	return strconv.Itoa(antinodeCount)
 }
 
 func (s *solver) SolvePart2(input string) string {
-	// todo
-	return ""
+	problemInput := parseInput(input)
+	antinodeCount := problemInput.AnnotateAntinodesPart2()
+	return strconv.Itoa(antinodeCount)
 }
 
 type Point struct {
@@ -55,7 +56,7 @@ type ProblemInput struct {
 	AntennaLocations map[rune][]Point
 }
 
-func (pi *ProblemInput) AnnotateAntinodes() int {
+func (pi *ProblemInput) AnnotateAntinodesPart1() int {
 	count := 0
 
 	// For each antenna type, mark all antinodes created by each pair of antennas
@@ -80,6 +81,53 @@ func (pi *ProblemInput) AnnotateAntinodes() int {
 							pi.AntinodeLocations[possibleAntinode.Row][possibleAntinode.Col] = '#'
 							count++
 						}
+					}
+				}
+			}
+		}
+	}
+
+	return count
+}
+
+func (pi *ProblemInput) AnnotateAntinodesPart2() int {
+	count := 0
+
+	// For each antenna type, mark all antinodes created by each pair of antennas
+	for _, antennaLocations := range pi.AntennaLocations {
+		for _, firstAntenna := range antennaLocations {
+			for _, secondAntenna := range antennaLocations {
+				// Skip if the same antenna
+				if firstAntenna.Equal(secondAntenna) {
+					continue
+				}
+
+				// Mark all antinodes created by this pair of antennas
+				deltaRow := secondAntenna.Row - firstAntenna.Row
+				deltaCol := secondAntenna.Col - firstAntenna.Col
+
+				lastAntinode := Point{firstAntenna.Row, firstAntenna.Col}
+
+				// Mark the first antinode
+				if pi.AntinodeLocations[lastAntinode.Row][lastAntinode.Col] == '.' {
+					pi.AntinodeLocations[lastAntinode.Row][lastAntinode.Col] = '#'
+					count++
+				}
+
+				directions := []int{-1, 1}
+				for _, direction := range directions {
+					for {
+						nextAntinode := Point{lastAntinode.Row + direction*deltaRow, lastAntinode.Col + direction*deltaCol}
+						if !pi.IsInGrid(nextAntinode) {
+							break
+						}
+
+						if pi.AntinodeLocations[nextAntinode.Row][nextAntinode.Col] == '.' {
+							pi.AntinodeLocations[nextAntinode.Row][nextAntinode.Col] = '#'
+							count++
+						}
+
+						lastAntinode = nextAntinode
 					}
 				}
 			}
