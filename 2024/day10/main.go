@@ -31,12 +31,12 @@ type solver struct{}
 
 func (s *solver) SolvePart1(input string) string {
 	problemInput := parseInput(input)
-	return strconv.Itoa(problemInput.ScoreTopology())
+	return strconv.Itoa(problemInput.ScoreTopology(true))
 }
 
 func (s *solver) SolvePart2(input string) string {
-	// TODO: implement
-	return ""
+	problemInput := parseInput(input)
+	return strconv.Itoa(problemInput.ScoreTopology(false))
 }
 
 type Point struct {
@@ -49,18 +49,41 @@ type ProblemInput struct {
 	Trailheads []Point
 }
 
-func (pi *ProblemInput) ScoreTopology() int {
+func (pi *ProblemInput) ScoreTopology(part1 bool) int {
 	score := 0
 
 	for _, th := range pi.Trailheads {
-		score += pi.ScoreTrailhead(th)
+		if part1 {
+			score += pi.ScoreTrailheadPart1(th)
+		} else {
+			score += pi.ScoreTrailheadPart2(th)
+		}
 	}
 
 	return score
 }
 
 // ScoreTrailhead returns the number of 9-height positions reachable from the trailhead, gradually increasing by exactly 1 height at each step.
-func (pi *ProblemInput) ScoreTrailhead(th Point) int {
+func (pi *ProblemInput) ScoreTrailheadPart2(th Point) int {
+	score := 0
+
+	height := pi.Topology[th.Row][th.Col]
+
+	// base case
+	if height == 9 {
+		return 1
+	}
+
+	// recursive case
+	for _, nextPoint := range pi.GetPossibleMoves(th, height) {
+		score += pi.ScoreTrailheadPart2(nextPoint)
+	}
+
+	return score
+}
+
+// ScoreTrailhead returns the number of 9-height positions reachable from the trailhead, gradually increasing by exactly 1 height at each step.
+func (pi *ProblemInput) ScoreTrailheadPart1(th Point) int {
 	score := 0
 	peaks := pi.GetReachablePeaks(th)
 	seen := map[Point]bool{}
