@@ -2,7 +2,7 @@ package main
 
 import (
 	_ "embed"
-	"strconv"
+	"fmt"
 	"strings"
 
 	"github.com/jhh3/aoc/common"
@@ -31,21 +31,22 @@ type solver struct{}
 
 func (s *solver) SolvePart1(input string) string {
 	problemInput := parseInput(input)
-	cost := problemInput.TotalCostToPrizes()
-	return strconv.Itoa(cost)
+	cost := problemInput.TotalCostToPrizes(false)
+	return fmt.Sprintf("%v", cost)
 }
 
 func (s *solver) SolvePart2(input string) string {
-	// TODO: implement part 2
-	return ""
+	problemInput := parseInput(input)
+	cost := problemInput.TotalCostToPrizes(true)
+	return fmt.Sprintf("%v", cost)
 }
 
 type Point struct {
-	X, Y int
+	X, Y int64
 }
 
 type Vector struct {
-	X, Y int
+	X, Y int64
 }
 
 const (
@@ -106,14 +107,33 @@ type ProblemInput struct {
 	ClawGames []ClawGame
 }
 
-func (pi *ProblemInput) TotalCostToPrizes() int {
-	totalCost := 0
+func (pi *ProblemInput) TotalCostToPrizes(withConversionError bool) int64 {
+	totalCost := int64(0)
 	for _, cg := range pi.ClawGames {
-		cost := cg.CostToPrize(Point{0, 0}, map[Point]int{})
-		if cost == -1 { // prize is unreachable
-			continue
+		// use system of equations to solve for aPresses and bPresses
+		// should have started here .... lol
+		if withConversionError {
+			err := int64(10000000000000)
+			cg.Prize.X += err
+			cg.Prize.Y += err
+
+			aPresses := (cg.Prize.Y*cg.ButtonB.X - cg.Prize.X*cg.ButtonB.Y) / (cg.ButtonA.Y*cg.ButtonB.X - cg.ButtonA.X*cg.ButtonB.Y)
+			bPresses := (cg.Prize.X - aPresses*cg.ButtonA.X) / cg.ButtonB.X
+
+			tx := aPresses*cg.ButtonA.X + bPresses*cg.ButtonB.X
+			ty := aPresses*cg.ButtonA.Y + bPresses*cg.ButtonB.Y
+
+			if tx == cg.Prize.X && ty == cg.Prize.Y {
+				totalCost += aPresses*int64(COST_OF_A_BUTTON) + bPresses*int64(COST_OF_B_BUTTON)
+			}
+
+		} else {
+			cost := cg.CostToPrize(Point{0, 0}, map[Point]int{})
+			if cost == -1 { // prize is unreachable
+				continue
+			}
+			totalCost += int64(cost)
 		}
-		totalCost += cost
 	}
 	return totalCost
 }
@@ -139,7 +159,7 @@ func parseInput(input string) *ProblemInput {
 			}
 			x := common.MustAtoi(strings.TrimPrefix(strings.TrimSpace(parts[0]), "X+"))
 			y := common.MustAtoi(strings.TrimPrefix(strings.TrimSpace(parts[1]), "Y+"))
-			currentClawGame.ButtonA = Vector{x, y}
+			currentClawGame.ButtonA = Vector{int64(x), int64(y)}
 		}
 
 		if strings.HasPrefix(line, "Button B: ") {
@@ -151,7 +171,7 @@ func parseInput(input string) *ProblemInput {
 			}
 			x := common.MustAtoi(strings.TrimPrefix(strings.TrimSpace(parts[0]), "X+"))
 			y := common.MustAtoi(strings.TrimPrefix(strings.TrimSpace(parts[1]), "Y+"))
-			currentClawGame.ButtonB = Vector{x, y}
+			currentClawGame.ButtonB = Vector{int64(x), int64(y)}
 		}
 
 		if strings.HasPrefix(line, "Prize: ") {
@@ -163,7 +183,7 @@ func parseInput(input string) *ProblemInput {
 			}
 			x := common.MustAtoi(strings.TrimPrefix(strings.TrimSpace(parts[0]), "X="))
 			y := common.MustAtoi(strings.TrimPrefix(strings.TrimSpace(parts[1]), "Y="))
-			currentClawGame.Prize = Point{x, y}
+			currentClawGame.Prize = Point{int64(x), int64(y)}
 
 			// copy the current claw game to the list and reset the current claw game
 			pi.ClawGames = append(pi.ClawGames, currentClawGame)
