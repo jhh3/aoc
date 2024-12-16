@@ -31,13 +31,14 @@ type solver struct{}
 
 func (s *solver) SolvePart1(input string) string {
 	problemInput := parseInput(input)
-	cost := problemInput.ComputeFenceCost()
+	cost := problemInput.ComputeFenceCost(false)
 	return strconv.Itoa(cost)
 }
 
 func (s *solver) SolvePart2(input string) string {
-	// TODO: Implement part 2
-	return ""
+	problemInput := parseInput(input)
+	cost := problemInput.ComputeFenceCost(true)
+	return strconv.Itoa(cost)
 }
 
 type Point struct {
@@ -57,17 +58,235 @@ type Region struct {
 	Points    []Point
 }
 
-func (pi *ProblemInput) ComputeFenceCost() int {
+func (pi *ProblemInput) ComputeFenceCost(bulkDiscount bool) int {
 	cost := 0
 
 	for plantType := range pi.PlantProcessedMap {
 		regions := pi.Regions(plantType)
 		for _, region := range regions {
-			cost += pi.ComputeCostForRegion(region)
+			if bulkDiscount {
+				cost += pi.ComputeCostForRegionBulkDiscount(region)
+			} else {
+				cost += pi.ComputeCostForRegion(region)
+			}
 		}
 	}
 
 	return cost
+}
+
+type Side struct {
+	Start, End Point
+	Label      string
+}
+
+func (pi *ProblemInput) ComputeCostForRegionBulkDiscount(region Region) int {
+	// Cost defined as area * number of sides
+	area := len(region.Points)
+	numSides := 0
+
+	seenSides := make(map[Side]bool)
+
+	// NOTE: I know this could be A LOT DRYer, but was just trying to get it working
+
+	for _, point := range region.Points {
+		// a point can contribute up to 4 sides
+
+		// 1. try top horizontal side
+		topPoint := Point{Row: point.Row - 1, Col: point.Col}
+		if !pi.IsInBounds(topPoint) || pi.Garden[topPoint.Row][topPoint.Col] != region.PlantType {
+			// this is part of a side
+
+			// find the start of the side
+			start := point
+			end := point
+			for {
+				newStart := Point{Row: start.Row, Col: start.Col - 1}
+
+				// must be the same plant type and inbounds
+				// add the top of it is out of bounds or not the same plant type
+				if pi.IsInBounds(newStart) && pi.Garden[newStart.Row][newStart.Col] == region.PlantType {
+					newStartTop := Point{Row: newStart.Row - 1, Col: newStart.Col}
+					if !pi.IsInBounds(newStartTop) || pi.Garden[newStartTop.Row][newStartTop.Col] != region.PlantType {
+						start = newStart
+					} else {
+						break
+					}
+				} else {
+					break
+				}
+			}
+
+			for {
+				newEnd := Point{Row: end.Row, Col: end.Col + 1}
+				// must be the same plant type and inbounds
+				// add the top of it is out of bounds or not the same plant type
+				if pi.IsInBounds(newEnd) && pi.Garden[newEnd.Row][newEnd.Col] == region.PlantType {
+					newStartTop := Point{Row: newEnd.Row - 1, Col: newEnd.Col}
+					if !pi.IsInBounds(newStartTop) || pi.Garden[newStartTop.Row][newStartTop.Col] != region.PlantType {
+						end = newEnd
+					} else {
+						break
+					}
+				} else {
+					break
+				}
+			}
+
+			side := Side{Start: start, End: end, Label: "top"}
+			if _, ok := seenSides[side]; !ok {
+				numSides++
+				seenSides[side] = true
+			}
+		}
+
+		// 2. try bottom horizontal side
+		bottomPoint := Point{Row: point.Row + 1, Col: point.Col}
+		if !pi.IsInBounds(bottomPoint) || pi.Garden[bottomPoint.Row][bottomPoint.Col] != region.PlantType {
+			// this is part of a side
+
+			// find the start of the side
+			start := point
+			end := point
+			for {
+				newStart := Point{Row: start.Row, Col: start.Col - 1}
+
+				// must be the same plant type and inbounds
+				// add the top of it is out of bounds or not the same plant type
+				if pi.IsInBounds(newStart) && pi.Garden[newStart.Row][newStart.Col] == region.PlantType {
+					newStartBottom := Point{Row: newStart.Row + 1, Col: newStart.Col}
+					if !pi.IsInBounds(newStartBottom) || pi.Garden[newStartBottom.Row][newStartBottom.Col] != region.PlantType {
+						start = newStart
+					} else {
+						break
+					}
+				} else {
+					break
+				}
+			}
+
+			for {
+				newEnd := Point{Row: end.Row, Col: end.Col + 1}
+				// must be the same plant type and inbounds
+				// add the top of it is out of bounds or not the same plant type
+				if pi.IsInBounds(newEnd) && pi.Garden[newEnd.Row][newEnd.Col] == region.PlantType {
+					newEndBottom := Point{Row: newEnd.Row + 1, Col: newEnd.Col}
+					if !pi.IsInBounds(newEndBottom) || pi.Garden[newEndBottom.Row][newEndBottom.Col] != region.PlantType {
+						end = newEnd
+					} else {
+						break
+					}
+				} else {
+					break
+				}
+			}
+
+			side := Side{Start: start, End: end, Label: "bottom"}
+			if _, ok := seenSides[side]; !ok {
+				numSides++
+				seenSides[side] = true
+			}
+		}
+
+		// 3. try left vertical side
+		leftPoint := Point{Row: point.Row, Col: point.Col - 1}
+		if !pi.IsInBounds(leftPoint) || pi.Garden[leftPoint.Row][leftPoint.Col] != region.PlantType {
+			// this is part of a side
+
+			// find the start of the side
+			start := point
+			end := point
+			for {
+				newStart := Point{Row: start.Row - 1, Col: start.Col}
+
+				// must be the same plant type and inbounds
+				// add the top of it is out of bounds or not the same plant type
+				if pi.IsInBounds(newStart) && pi.Garden[newStart.Row][newStart.Col] == region.PlantType {
+					newStartLeft := Point{Row: newStart.Row, Col: newStart.Col - 1}
+					if !pi.IsInBounds(newStartLeft) || pi.Garden[newStartLeft.Row][newStartLeft.Col] != region.PlantType {
+						start = newStart
+					} else {
+						break
+					}
+				} else {
+					break
+				}
+			}
+
+			for {
+				newEnd := Point{Row: end.Row + 1, Col: end.Col}
+				// must be the same plant type and inbounds
+				// add the top of it is out of bounds or not the same plant type
+				if pi.IsInBounds(newEnd) && pi.Garden[newEnd.Row][newEnd.Col] == region.PlantType {
+					newEndLeft := Point{Row: newEnd.Row, Col: newEnd.Col - 1}
+					if !pi.IsInBounds(newEndLeft) || pi.Garden[newEndLeft.Row][newEndLeft.Col] != region.PlantType {
+						end = newEnd
+					} else {
+						break
+					}
+				} else {
+					break
+				}
+			}
+
+			side := Side{Start: start, End: end, Label: "left"}
+			if _, ok := seenSides[side]; !ok {
+				numSides++
+				seenSides[side] = true
+			}
+		}
+
+		// 4. try right vertical side
+		rightPoint := Point{Row: point.Row, Col: point.Col + 1}
+		if !pi.IsInBounds(rightPoint) || pi.Garden[rightPoint.Row][rightPoint.Col] != region.PlantType {
+			// this is part of a side
+
+			// find the start of the side
+			start := point
+			end := point
+			for {
+				newStart := Point{Row: start.Row - 1, Col: start.Col}
+
+				// must be the same plant type and inbounds
+				// add the top of it is out of bounds or not the same plant type
+				if pi.IsInBounds(newStart) && pi.Garden[newStart.Row][newStart.Col] == region.PlantType {
+					newStartRight := Point{Row: newStart.Row, Col: newStart.Col + 1}
+					if !pi.IsInBounds(newStartRight) || pi.Garden[newStartRight.Row][newStartRight.Col] != region.PlantType {
+						start = newStart
+					} else {
+						break
+					}
+				} else {
+					break
+				}
+			}
+
+			for {
+				newEnd := Point{Row: end.Row + 1, Col: end.Col}
+				// must be the same plant type and inbounds
+				// add the top of it is out of bounds or not the same plant type
+				if pi.IsInBounds(newEnd) && pi.Garden[newEnd.Row][newEnd.Col] == region.PlantType {
+					newEndRight := Point{Row: newEnd.Row, Col: newEnd.Col + 1}
+					if !pi.IsInBounds(newEndRight) || pi.Garden[newEndRight.Row][newEndRight.Col] != region.PlantType {
+						end = newEnd
+					} else {
+						break
+					}
+				} else {
+					break
+				}
+			}
+
+			side := Side{Start: start, End: end, Label: "right"}
+			if _, ok := seenSides[side]; !ok {
+				numSides++
+				seenSides[side] = true
+			}
+		}
+
+	}
+
+	return numSides * area
 }
 
 func (pi *ProblemInput) ComputeCostForRegion(region Region) int {
