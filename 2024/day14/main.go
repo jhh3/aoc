@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jhh3/aoc/2024/d14"
 	"github.com/jhh3/aoc/common"
 )
 
@@ -34,18 +33,11 @@ type solver struct{}
 func (s *solver) SolvePart1(input string) string {
 	problemInput := parseInput(input)
 	problemInput.Step(100)
-	fmt.Printf("Dimensions: %v\n", problemInput.Dimensions)
 	safetyFactor := problemInput.ComputeSafetyfactor()
-
-	dAns, _ := d14.Part1(input)
-
-	fmt.Printf("Day 14 Part 1: %v\n", dAns)
-
 	return strconv.Itoa(safetyFactor)
 }
 
 func (s *solver) SolvePart2(input string) string {
-	// TODO: Implement part 2
 	problemInput := parseInput(input)
 	lowestSafetyFactor := 1000000000000000
 	bestStep := 0
