@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"golang.org/x/exp/constraints"
 )
@@ -86,4 +87,10 @@ func IntPow(base, exp int) int {
 func ConcatInts(a, b int) int {
 	strValue := fmt.Sprintf("%d%d", a, b)
 	return MustAtoi(strValue)
+}
+
+// Read as lines
+func ReadAsLines(input string) []string {
+	lines := strings.Split(strings.TrimSpace(input), "\n")
+	return lines
 }
