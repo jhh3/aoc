@@ -46,8 +46,23 @@ func (s *solver) SolvePart1(input string) string {
 
 func (s *solver) SolvePart2(input string) string {
 	// TODO: Implement part 2
+	problemInput := parseInput(input)
+	lowestSafetyFactor := 1000000000000000
+	bestStep := 0
+	for i := 0; i < 10000; i++ {
+		problemInput.Step(1)
+		safetyFactor := problemInput.ComputeSafetyfactor()
+		if safetyFactor < lowestSafetyFactor {
+			lowestSafetyFactor = safetyFactor
+			bestStep = i
+			fmt.Printf("Step: %v, Safety Factor: %v\n", bestStep, safetyFactor)
+			problemInput.PrettyPrint()
+		}
+	}
 	return ""
 }
+
+//--------------------------------------------------------------------
 
 type RoomDimensions struct {
 	Width, Height int
@@ -78,20 +93,32 @@ type ProblemInput struct {
 
 func (pi *ProblemInput) Step(numSteps int) {
 	for i := range pi.Robots {
-		// robots wrap around the room, use modulo to handle this
+		// reference:
+		// r.x += n * r.vx
+		// r.x %= width
+		// r.y += n * r.vy
+		// r.y %= height
+		// if r.x < 0 {
+		// 	r.x += width
+		// }
+		// if r.y < 0 {
+		// 	r.y += height
+		// }
+
+		// Update X coordinate
 		pi.Robots[i].Position.X += numSteps * pi.Robots[i].Velocity.Dx
 		pi.Robots[i].Position.X %= pi.Dimensions.Width
-
-		pi.Robots[i].Position.Y = numSteps * pi.Robots[i].Velocity.Dy
-		pi.Robots[i].Position.Y %= pi.Dimensions.Height
-
 		if pi.Robots[i].Position.X < 0 {
 			pi.Robots[i].Position.X += pi.Dimensions.Width
 		}
 
+		// Update Y coordinate
+		pi.Robots[i].Position.Y += numSteps * pi.Robots[i].Velocity.Dy
+		pi.Robots[i].Position.Y %= pi.Dimensions.Height
 		if pi.Robots[i].Position.Y < 0 {
 			pi.Robots[i].Position.Y += pi.Dimensions.Height
 		}
+
 	}
 }
 
@@ -105,8 +132,6 @@ func (pi *ProblemInput) ComputeSafetyfactor() int {
 
 	safetyFactor := counts[0] * counts[1] * counts[2] * counts[3]
 
-	fmt.Printf("ounts: %v\n", counts)
-
 	return safetyFactor
 }
 
@@ -115,7 +140,7 @@ func (pi *ProblemInput) WhichQuadrant(p Point) int {
 	if p.X < pi.Dimensions.Width/2 && p.Y < pi.Dimensions.Height/2 {
 		return 0
 	}
-	if p.X >= pi.Dimensions.Width/2 && p.Y < pi.Dimensions.Height/2 {
+	if p.X > pi.Dimensions.Width/2 && p.Y < pi.Dimensions.Height/2 {
 		return 1
 	}
 
@@ -175,4 +200,26 @@ func parseInput(input string) ProblemInput {
 	}
 
 	return pi
+}
+
+func (pi *ProblemInput) RobotsOnDifferentPositions() bool {
+	positions := make(map[Point]bool)
+	for _, robot := range pi.Robots {
+		if _, ok := positions[robot.Position]; ok {
+			return false
+		}
+		positions[robot.Position] = true
+	}
+	return true
+}
+
+func (pi *ProblemInput) ComputerCenterOfMass() Point {
+	centerOfMass := Point{0, 0}
+	for _, robot := range pi.Robots {
+		centerOfMass.X += robot.Position.X
+		centerOfMass.Y += robot.Position.Y
+	}
+	centerOfMass.X /= len(pi.Robots)
+	centerOfMass.Y /= len(pi.Robots)
+	return centerOfMass
 }
