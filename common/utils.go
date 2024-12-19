@@ -94,3 +94,7 @@ func ReadAsLines(input string) []string {
 	lines := strings.Split(strings.TrimSpace(input), "\n")
 	return lines
 }
+
+func Itoa(i int) string {
+	return strconv.Itoa(i)
+}
